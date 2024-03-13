@@ -25,3 +25,13 @@ while True:
     time.sleep(0.01)
 
 window.close()
+
+
+Traceback (most recent call last):
+  File "C:\Users\daruma\program\py\test-simple-gui\main.py", line 22, in <module>
+    progress_bar.UpdateBar(fraction)
+  File "C:\Users\daruma\.pyenv\pyenv-win\versions\3.9.1\lib\site-packages\PySimpleGUI\PySimpleGUI.py", line 5607, in update_bar
+    if self.ParentForm.TKrootDestroyed:
+AttributeError: 'NoneType' object has no attribute 'TKrootDestroyed'
+
+
