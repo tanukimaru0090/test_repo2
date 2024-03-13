@@ -1,0 +1,27 @@
+import PySimpleGUI as sg
+import time
+
+# ウィンドウのレイアウトを定義
+layout = [
+    [sg.Text('タイマー')],
+    [sg.ProgressBar(max_value=100, orientation='h', size=(20, 20), key='progressbar')]
+]
+
+# ウィンドウを作成
+window = sg.Window('タイマーゲージ', layout)
+progress_bar = window['progressbar']
+
+# タイマーの設定（10秒間で100%まで増加）
+end_time = time.time() + 10
+while True:
+    # 現在の時間を取得
+    current_time = time.time()
+    # 経過時間の割合を計算
+    fraction = ((current_time - (end_time - 10)) / 10) * 100
+    # ゲージを更新
+    progress_bar.UpdateBar(fraction)
+    if current_time >= end_time:
+        break
+    time.sleep(0.01)
+
+window.close()
