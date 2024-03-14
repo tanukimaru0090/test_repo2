@@ -1,0 +1,35 @@
+require 'tk'
+
+# プログレスバーを更新するメソッド
+def start_progressbar(pb, var, max_value)
+  var.value = 0
+  # 100ミリ秒ごとにプログレスバーを更新
+  TkAfter.new(100, max_value) do
+    if var.value < max_value
+      var.value += 1
+      pb.value = var.value
+    else
+      # 最大値に達したら停止
+      TkAfter.stop
+    end
+  end.start
+end
+
+# Tkウィンドウの初期化
+root = TkRoot.new { title 'Progressbar Demo' }
+
+# TkVariableオブジェクトの初期化
+var = TkVariable.new(0)
+
+# プログレスバーの作成
+progressbar = Tk::Tile::Progressbar.new(root, orient: 'horizontal', length: 200, mode: 'determinate', variable: var)
+progressbar.pack(pady: 10)
+
+# プログレスバーをスタートするボタンの作成
+start_button = TkButton.new(root) do
+  text 'Start'
+  command { start_progressbar(progressbar, var, 100) }
+end
+start_button.pack(pady: 10)
+
+Tk.mainloop
