@@ -84,3 +84,11 @@ fn main() {
     }
     println!("Hello, world!");
 }
+
+
+
+Call parameter type does not match function signature!
+i32 10
+ i32  %addtmp = call i32 @add(i32 10, i32 20)
+LLVM ERROR: Broken module found, compilation aborted!
+
