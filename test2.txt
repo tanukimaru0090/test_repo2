@@ -1,4 +1,5 @@
-    // printf関数の型定義
+
+      // printf関数の型定義
         let printf_type =
             LLVMFunctionType(int_type, [LLVMPointerType(int8_type, 0)].as_mut_ptr(), 1, 1);
 
@@ -9,23 +10,18 @@
             printf_type,
         );
 
-        let format_str = CString::new("%d\\0A").unwrap();
+        let format_str = CString::new("%d\\n").unwrap();
         let global_format_str = LLVMAddGlobal(
             module,
             LLVMArrayType(int8_type, format_str.to_bytes_with_nul().len() as u32),
             CString::new("formatStr").unwrap().as_ptr(),
         );
-      let format_str = CString::new("%d\\0A").unwrap();
-        let global_format_str = LLVMAddGlobal(
-            module,
-            LLVMArrayType(int8_type, format_str.to_bytes_with_nul().len() as u32),
-            CString::new("formatStr").unwrap().as_ptr(),
-        );
+        
         LLVMSetInitializer(
             global_format_str,
             LLVMConstStringInContext(
                 ctx,
-                format_str.as_ptr() as *mut i8,
+                format_str.as_ptr() as *const i8,
                 format_str.to_bytes_with_nul().len() as u32,
                 0,
             ),
@@ -33,7 +29,21 @@
         LLVMSetGlobalConstant(global_format_str, 1);
         LLVMSetLinkage(global_format_str, LLVMLinkage::LLVMLinkerPrivateLinkage);
 
- let zero = LLVMConstInt(int_type, 0, 0);
+        // add関数を呼ぶための引数の指定
+        let arg1 = LLVMConstInt(int_type, 10, 0);
+        let arg2 = LLVMConstInt(int_type, 20, 0);
+        // 引数を一つのタプルにする
+        let mut call_args = [arg1, arg2];
+
+        // add関数をmain関数で呼び出す
+        let add_res = LLVMBuildCall(
+            builder,
+            add_func,
+            call_args.as_mut_ptr(),
+            2,
+            CString::new("addtmp").unwrap().as_ptr(),
+        );
+        let zero = LLVMConstInt(int_type, 0, 0);
         let mut indices = [zero, zero];
         let format_str_ptr = LLVMBuildGEP(
             builder,
@@ -52,4 +62,11 @@
             2,
             CString::new("printfTemp").unwrap().as_ptr(),
         );
+        // printf関数の戻り値をmain関数の戻り値としてリターンする
+        LLVMBuildRet(builder, printf_res);
+
+Global variable initializer type does not match global variable type!
+[5 x i8]* @formatStr
+LLVM ERROR: Broken module found, compilation aborted!
+中止 (コアダンプ)
 
