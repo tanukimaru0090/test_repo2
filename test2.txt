@@ -1,20 +1,55 @@
+    // printf関数の型定義
+        let printf_type =
+            LLVMFunctionType(int_type, [LLVMPointerType(int8_type, 0)].as_mut_ptr(), 1, 1);
 
-; ModuleID = 'my_module'
-source_filename = "my_module"
+        // printf関数の関数定義
+        let printf_func = LLVMAddFunction(
+            module,
+            CString::new("printf").unwrap().as_ptr(),
+            printf_type,
+        );
 
-@formatStr = private constant [5 x i8] c"%d\\n\00\00"
+        let format_str = CString::new("%d\\0A").unwrap();
+        let global_format_str = LLVMAddGlobal(
+            module,
+            LLVMArrayType(int8_type, format_str.to_bytes_with_nul().len() as u32),
+            CString::new("formatStr").unwrap().as_ptr(),
+        );
+      let format_str = CString::new("%d\\0A").unwrap();
+        let global_format_str = LLVMAddGlobal(
+            module,
+            LLVMArrayType(int8_type, format_str.to_bytes_with_nul().len() as u32),
+            CString::new("formatStr").unwrap().as_ptr(),
+        );
+        LLVMSetInitializer(
+            global_format_str,
+            LLVMConstStringInContext(
+                ctx,
+                format_str.as_ptr() as *mut i8,
+                format_str.to_bytes_with_nul().len() as u32,
+                0,
+            ),
+        );
+        LLVMSetGlobalConstant(global_format_str, 1);
+        LLVMSetLinkage(global_format_str, LLVMLinkage::LLVMLinkerPrivateLinkage);
 
-define i32 @add(i32 %0, i32 %1) {
-entry:
-  %sum = add i32 %0, %1
-  ret i32 %sum
-}
+ let zero = LLVMConstInt(int_type, 0, 0);
+        let mut indices = [zero, zero];
+        let format_str_ptr = LLVMBuildGEP(
+            builder,
+            global_format_str,
+            indices.as_mut_ptr(),
+            2,
+            CString::new("formatStrPtr").unwrap().as_ptr(),
+        );
 
-declare i32 @printf(i8* %0, ...)
+        // printf関数を呼び出す
+        let mut printf_args = [format_str_ptr, add_res];
+        let printf_res = LLVMBuildCall(
+            builder,
+            printf_func,
+            printf_args.as_mut_ptr(),
+            2,
+            CString::new("printfTemp").unwrap().as_ptr(),
+        );
 
-define i32 @main() {
-entry:
-  %addtmp = call i32 @add(i32 10, i32 20)
-  %printfTemp = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([5 x i8], [5 x i8]* @formatStr, i32 0, i32 0), i32 %addtmp)
-  ret i32 %printfTemp
-}
