@@ -1,4 +1,11 @@
 
+/usr/bin/ld: output.o: relocation R_X86_64_32 against `.rodata' can not be used when making a PIE object; recompile with -fPIE
+/usr/bin/ld: failed to set dynamic section sizes: bad value
+collect2: error: ld returned 1 exit status
+
+
+
+
       // printf関数の型定義
         let printf_type =
             LLVMFunctionType(int_type, [LLVMPointerType(int8_type, 0)].as_mut_ptr(), 1, 1);
