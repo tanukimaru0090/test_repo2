@@ -1,0 +1,46 @@
+extern crate ui;
+use ui::prelude::*;
+use ui::{Control, Entry, ProgressBar, Window};
+
+fn main() {
+    ui::init().expect("UIライブラリの初期化に失敗しました。");
+
+    let mainwin = Window::new("プログレスバーのデモ", 320, 60, true);
+    mainwin.set_margined(true);
+
+    let vbox = VerticalBox::new();
+    vbox.set_padded(true);
+    mainwin.set_child(&vbox);
+
+    let pbar = ProgressBar::new();
+    vbox.append(&pbar, LayoutStrategy::Compact);
+
+    let hbox = HorizontalBox::new();
+    hbox.set_padded(true);
+    vbox.append(&hbox, LayoutStrategy::Stretchy);
+
+    let button_inc = Button::new("増加");
+    button_inc.on_clicked(|_| {
+        let value = pbar.value();
+        if value < 100 {
+            pbar.set_value(value + 10);
+        }
+    });
+    hbox.append(&button_inc, LayoutStrategy::Compact);
+
+    let button_dec = Button::new("減少");
+    button_dec.on_clicked(|_| {
+        let value = pbar.value();
+        if value > 0 {
+            pbar.set_value(value - 10);
+        }
+    });
+    hbox.append(&button_dec, LayoutStrategy::Compact);
+
+    mainwin.on_closing(|_| {
+        ui::quit();
+    });
+
+    mainwin.show();
+    ui::main();
+}
