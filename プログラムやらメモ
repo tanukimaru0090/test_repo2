@@ -1,0 +1,143 @@
+基本的に
+GUIはRustとかRuby、Pythonあたりで作成
+CUIも前述ので作成をすると楽しくできる
+ゲームに関しては知識的にもC++でやるほうが後々良いだろう
+もしくはHaxeでは安定する可能性があるため、自身で色々なリソースを作成できるようになったりすればこのHaxeは
+ゲーム開発において相当自身のニーズに当てはまっているだろう。
+
+アセンブラやハードウェアにかかわるものは高速な処理に関して厳密だが基本的に固執して高速な言語を使わなくてもよい
+特に簡単にやるツールなどは前述の3つが最適
+ただ上記の並べた言語の中ででRustやC++は高レベル+低レベルを併用できるため、結局優先的に使うだろう
+低レベル操作は結局はCがいいのかもしれない。ただ面倒だろうなぁ
+
+
+
+
+入れておく言語
+・Ruby
+・Rust
+・C/C++
+・Crystal
+・Python
+・Haxe
+
+多いなぁ・・
+Rust&Crystal&Ruby:
+・これら言語は、基本CUI、GUI用に使うことが多くなると思われ。
+というか自分が楽しいのがグラフィック関連、GUI、CUIあたりなんだろう。
+もしくはゲーム開発。ただし、ゲーム開発においてはリソースの作成がまだ十分にできないため、あと1年から2..3年あればクオリティ十分なゲーム開発ができるだろう。
+
+Rust:
+・実行可能ファイルにアイコンを埋め込むには、
+
+#[cfg(windows)]  
+extern crate windres;  
+use windres::Build;  
+
+fn main() {  
+    Build::new().compile("src/icon.rc").unwrap();  
+}
+のようにする
+src/icon.rcは
+
+1 ICON "test.ico"
+のようにする
+アイコンはリソース設定ファイルと同じディレクトリにおく
+
+
+・IMGUIとSFML使うとき、
+Rustで使う際は、imgui-sfml-supportを使う必要があるが、sfml含め、すべてgitからクレートを取得するようにし、
+imgui-sfml-supportのgitはブランチにworkaroundを指定する必要がある
+もしサポートがなくなったり使えなくなったら自身でimgui-sfml-supportを実装、および使うことにする
+sfml = { git = "https://github.com/jeremyletang/rust-sfml.git" }
+imgui-sfml-support = { git = "https://github.com/truenotzero/imgui-sfml-support.git", branch = "workaround" }
+上記のようにしないとコンパイル時エラーが出る。
+もし、DirectXの場合は別居違ったコードが必要
+しかしSFMLを使う場合WindowsでもLinuxでもいけるはず。
+
+
+フォントを使用する際は、
+   let mut wnd = RenderWindow::new(
+        (800, 800),
+        "Rust: SFML-ImGui",
+        Style::CLOSE,
+        &ContextSettings::default(),
+    );
+
+    let mut imgui = Context::create();
+    // フォントデータを読み込む
+    let font_data = include_bytes!("assets/test_font.ttf");
+
+    // フォント設定を作る
+    let font_config = imgui::FontConfig {
+        size_pixels: 18.0,
+        glyph_ranges: imgui::FontGlyphRanges::japanese(), // 日本語の文字を含む
+        ..Default::default()
+    };
+
+    let fonts = imgui.fonts(); // &mut を取得するため、`&mut` は必要ありません
+    let font_id = fonts.add_font(&[imgui::FontSource::TtfData {
+        size_pixels: 15.0,
+        data: font_data,
+        config: Some(font_config.clone()),
+    }]);
+    fonts.build_rgba32_texture();
+
+    let mut renderer = SFMLRenderer::init(&mut imgui);
+    let mut platform = SFMLPlatform::init(&mut imgui, &wnd);
+のようにrendererとplatform初期化前にフォントを追加する必要がある。push_font自体は後からでもできるはず
+上記はSFML+IMGUI+Rustだが、バックエンド関係なく順序は上記である必要がありそう
+
+もし
+rendererとplatform初期化後にフォントの追加をしようとすると何も表示されなくなってしまった
+
+画像に関してバックエンドによるが、SFMLとIMGUI+Rustの場合は、
+
+
+・Windows限定だが、明示的に
+#! [windows_subsystem = "windows"]
+とすることでコンソールを非表示にすることができる。
+もしくは、rustcに直接-mwindowsを渡すことで解決できる。
+・基本的に戻り値はResultかOption、もしくは素のプリミティブ型やユーザー定義型。
+ただ、エラーハンドリング必要な場合や、値があるなしで分けられる場合はResult、Optionは便利
+また、エラー型を自身で定義するのも有用かもしれない
+エラー型以外にもtraitでデザインパターンを表現できる。
+]
+C++:
+・この言語は根本的なアルゴリズム理解や、高速な計算、ゲーム開発に使うことが多くなると思われ。ほぼウィキに書いてそうだけど
+・DxLibとC++を使う際について
+もしMinGW32で使う場合は、
+自身のテンプレートのMakefileもしくはCmakeの設定ファイルを使用することですぐに使うことができる。ライブラリやインクルードディレクトリなどは変更する必要があるかもしれんが。
+あと、基本的にSHIFT_JISは使わずにUTF-8でソースコードを保存し、DxLib_Init前に、SetUseCharCodeFormat(DX_CHARCODEFORMAT_UTF8);を指定する必要がある。
+もしWindowsAPIを使う場合はワイド文字を使う必要があるだろうからstd::wstringとかを使うといいかもしれない。
+DxLibでの初期化関数の呼び出しの前後で、呼べる関数呼ぶべき関数があるが、
+ChangeWindowMode()
+SetGraphMode()
+DxLib_Init()
+DxLIb_End()
+ProcessMessage()
+SetDrawScreen(DX_SCREEN_BACK)
+などあればおｋ
+
+
+
+
+
+
+
+全般:
+・基本的にコードを書くとき、関数などにはまとめるが、クラスにはすぐにまとめない。
+なぜなら、とりあえず処理自体が動かないと意味がないからである。処理が動かないとクラスにしても意味がない上に、無駄にクラスを生成するようなのがざらにあるからである。
+なので、どの言語でもコードを書くときはクラスやモジュール、もしくはオブジェクト指向言語に近い仕様はすぐに使わない。
+とりあえず動くのは前提で、そのあとに便利に使えるようにまとめるのが筋。で、基本的にシンプルなコードをどんどん増やしていくのがよい
+Cみたいな言語なら関数でまとめた後、無駄がないか、メモリ消費が激しくないか、エラーハンドリングを正しく行っているかを確かめなきゃいかん。
+エラーハンドリングは面倒で省いたり忘れることが多いが、気づいたときに書く必要がある。
+あと、これはオブジェクト志向系に限るが、基本的に値を保持する際、依存関係の注入がよい。
+あと、rustではnew関数、c++ではコンストラクタなどは、直接的な処理は書かない。もし処理が必要であっても、関数をその中で呼ぶなどしたほうがいい。また、C++では引数によって例外を出したり、エラーを出したり、コンストラクタの時点で引数を判定するのも良いと思う。あと、無駄な変数作成、はやめることだ。
+
+
+2023 3/5
+このめもはなんだ。
+すごく機械的に書かれていていいと思います。
+まるでこれが正しいかのように書かれています。
+私の自意識過剰が働きすぎている。
